@@ -84,8 +84,9 @@ window = Window()
 def flash_click():
     qualifier = ""
     url = window.form_widget.url_text_edit.toPlainText()
+    actual_url = ota.getOTADictionary()[url]
     variant = window.form_widget.gsi_variant.currentText()
-    process_flash(url, variant, qualifier, window.form_widget.progress_bar)
+    process_flash(actual_url, variant, qualifier, window.form_widget.progress_bar)
 
 
 def flash_click_event():
