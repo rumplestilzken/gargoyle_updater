@@ -11,7 +11,7 @@ def get_variant_map(qualifier):
             "Titan": "gargoyle_bvN-vndklite",
             "Titan bgn": "gargoyle_pocket_bgn-vndklite",
         }
-    elif "bgn" in qualifier:
+    elif "bgN" in qualifier:
         dict = {
             "Titan": "gargoyle_bgN",
             "Titan Pocket": "gargoyle_pocket_bgN",

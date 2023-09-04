@@ -12,6 +12,9 @@ from flash import process_flash
 x = None
 
 
+
+
+
 class Window(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -36,7 +39,7 @@ class FormWidget(QWidget):
         self.url_text = QLabel("Update URL:")
         self.layout.addWidget(self.url_text, 0, 0, Qt.AlignmentFlag.AlignLeft)
 
-        self.release = QComboBox()
+        self.release = QComboBox(self)
         self.release.setFixedWidth(300)
         self.release.setFixedHeight(20)
 
@@ -48,17 +51,18 @@ class FormWidget(QWidget):
         self.variant_text_edit = QLabel("Variant")
         self.layout.addWidget(self.variant_text_edit, 1, 0, Qt.AlignmentFlag.AlignLeft)
 
-        self.gsi_variant = QComboBox()
+        self.gsi_variant = QComboBox(self)
         self.gsi_variant.setFixedWidth(300)
         self.gsi_variant.setFixedHeight(20)
         self.gsi_variant.addItem("Titan")
         self.gsi_variant.addItem("Titan Pocket")
         self.gsi_variant.addItem("Titan Slim")
         self.gsi_variant.addItem("Jelly 2E")
+        self.gsi_variant.activated.connect(self.update_qualifier)
         self.layout.addWidget(self.gsi_variant, 1, 1, Qt.AlignmentFlag.AlignRight)
 
-        self.qualifier = QComboBox()
-        self.qualifier.addItem("")
+        self.qualifier = QComboBox(self)
+        self.qualifier.addItem("bvn")
         self.qualifier.addItem("bgN")
         self.qualifier.addItem("vndkLite")
         self.layout.addWidget(self.qualifier, 1, 2, Qt.AlignmentFlag.AlignRight)
@@ -76,16 +80,24 @@ class FormWidget(QWidget):
 
         self.setLayout(self.layout)
 
+    def update_qualifier(self):
+        window.form_widget.qualifier.clear()
+        window.form_widget.qualifier.addItem("bvn")
+        if "Titan" == window.form_widget.gsi_variant.currentText():
+            window.form_widget.qualifier.addItem("vndklite")
+        window.form_widget.qualifier.addItem("bgN")
+
+
 
 app = QApplication(sys.argv)
 window = Window()
 
 
 def flash_click():
-    qualifier = ""
     url = window.form_widget.url_text_edit.toPlainText()
     actual_url = ota.getOTADictionary()[url]
     variant = window.form_widget.gsi_variant.currentText()
+    qualifier = window.form_widget.release.currentText()
     process_flash(actual_url, variant, qualifier, window.form_widget.progress_bar)
 
 
