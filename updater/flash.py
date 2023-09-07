@@ -8,7 +8,7 @@ import tarfile
 
 from enum import Enum
 
-import ota
+from updater import ota
 
 
 class OS(Enum):

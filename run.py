@@ -5,14 +5,10 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 import sys
 import threading
-import ota
 
-from flash import process_flash
+from updater import ota, flash
 
 x = None
-
-
-
 
 
 class Window(QMainWindow):
@@ -58,7 +54,7 @@ class FormWidget(QWidget):
         self.gsi_variant.addItem("Titan Pocket")
         self.gsi_variant.addItem("Titan Slim")
         self.gsi_variant.addItem("Jelly 2E")
-        self.gsi_variant.activated.connect(self.update_qualifier)
+        self.gsi_variant.activated.connect(self.updateQualifier)
         self.layout.addWidget(self.gsi_variant, 1, 1, Qt.AlignmentFlag.AlignRight)
 
         self.qualifier = QComboBox(self)
@@ -67,26 +63,51 @@ class FormWidget(QWidget):
         self.qualifier.addItem("vndkLite")
         self.layout.addWidget(self.qualifier, 1, 2, Qt.AlignmentFlag.AlignRight)
 
+        self.stock_rom_label = QLabel("Stock Rom Location:")
+        self.layout.addWidget(self.stock_rom_label, 3, 0, Qt.AlignmentFlag.AlignLeft)
+
+        self.stock_rom_edit = QTextEdit()
+        self.stock_rom_edit.setFixedWidth(300)
+        self.stock_rom_edit.setFixedHeight(60)
+        self.stock_rom_edit.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.stock_rom_edit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.layout.addWidget(self.stock_rom_edit, 3, 1, Qt.AlignmentFlag.AlignLeft)
+
+        self.stock_rom_dialog = QPushButton("Open")
+        self.stock_rom_dialog.clicked.connect(self.openFileDialog)
+        self.layout.addWidget(self.stock_rom_dialog, 3, 2, Qt.AlignmentFlag.AlignLeft)
+
         self.progress_bar = QProgressBar()
-        self.progress_bar.setFixedWidth(300)
-        self.layout.addWidget(self.progress_bar, 2, 1, 1, 2, Qt.AlignmentFlag.AlignLeft)
+        self.progress_bar.setFixedWidth(390)
+        self.layout.addWidget(self.progress_bar, 5, 1, 1, 2, Qt.AlignmentFlag.AlignLeft)
 
         self.button1 = QPushButton("Flash")
-        self.layout.addWidget(self.button1, 2, 2, 1, 1, Qt.AlignmentFlag.AlignRight)
+        self.layout.addWidget(self.button1, 5, 0, Qt.AlignmentFlag.AlignRight)
 
         self.update_message = QLabel("")
         self.update_message.setVisible(False)
-        self.layout.addWidget(self.update_message, 3, 1, 1, 3, Qt.AlignmentFlag.AlignLeft)
+        self.layout.addWidget(self.update_message, 6, 1, 1, 3, Qt.AlignmentFlag.AlignLeft)
 
         self.setLayout(self.layout)
 
-    def update_qualifier(self):
+    def openFileDialog(self):
+        file_dialog = QFileDialog()
+        file_name = file_dialog.getOpenFileName(self, "Select Stock Rom Scatter or Archive", "/home/")
+        window.form_widget.stock_rom_edit.setText(file_name[0])
+
+    def updateQualifier(self):
         window.form_widget.qualifier.clear()
         window.form_widget.qualifier.addItem("bvn")
         if "Titan" == window.form_widget.gsi_variant.currentText():
             window.form_widget.qualifier.addItem("vndklite")
+            window.form_widget.stock_rom_label.setVisible(False)
+            window.form_widget.stock_rom_edit.setVisible(False)
+            window.form_widget.stock_rom_dialog.setVisible(False)
+        else:
+            window.form_widget.stock_rom_label.setVisible(True)
+            window.form_widget.stock_rom_edit.setVisible(True)
+            window.form_widget.stock_rom_dialog.setVisible(True)
         window.form_widget.qualifier.addItem("bgN")
-
 
 
 app = QApplication(sys.argv)
@@ -98,7 +119,7 @@ def flash_click():
     actual_url = ota.getOTADictionary()[url]
     variant = window.form_widget.gsi_variant.currentText()
     qualifier = window.form_widget.release.currentText()
-    process_flash(actual_url, variant, qualifier, window.form_widget.progress_bar)
+    flash.process_flash(actual_url, variant, qualifier, window.form_widget.progress_bar)
 
 
 def flash_click_event():
@@ -122,6 +143,7 @@ def process_finished():
 
 def main():
     window.form_widget.button1.clicked.connect(lambda: flash_click_event())
+    window.form_widget.updateQualifier()
 
     sys.exit(app.exec())
     return
