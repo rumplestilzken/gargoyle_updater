@@ -5,6 +5,7 @@ import zipfile
 import json
 import stat
 import tarfile
+import gdown
 
 from enum import Enum
 
@@ -17,24 +18,42 @@ class OS(Enum):
     Windows = "windows"
 
 
+class DeviceReqion(Enum):
+    NotSet = ""
+    EEA = "EEA"
+    TEE = "TEE"
+    UFS = "UFS"
+
+
 class DeviceType(Enum):
     NotSet = ""
-    Titan = "titan"
+    Titan = "gargoyle"
     Pocket = "pocket"
     Slim = "slim"
     Jelly2E = "jelly2e"
 
 
+class FlashType(Enum):
+    NotSet = ""
+    Update = "update"
+    Flash = "flash"
+    FlashFull = "flash full"
+
+
 os_type = OS.NotSet
+region = DeviceReqion.NotSet
 progress_bar = None
 filename = ""
 outfile = ""
 dev = DeviceType.NotSet
 
 
-def process_flash(json_url, variant, qualifier, progressbar):
+def process_flash(json_url, variant, given_region, qualifier, progressbar):
     global progress_bar
     global dev
+    global region
+
+    region = DeviceReqion[given_region]
     progress_bar = progressbar
     progressbar.setValue(10)
 
@@ -44,7 +63,28 @@ def process_flash(json_url, variant, qualifier, progressbar):
     download_update(json_url, variant, qualifier)
     progressbar.setValue(50)
 
-    flash_gsi("super")
+    mksuper()
+
+    if not is_mksuper():
+        flash_gsi("system")
+    else:
+        flash_gsi("super")
+
+
+def is_mksuper():
+    global dev
+    if dev == DeviceType.Titan:
+        return False
+
+    return True
+
+
+def mksuper():
+    global dev
+    global region
+
+    if not is_mksuper():
+        return
 
 
 def prepare_resources():
@@ -62,7 +102,7 @@ def prepare_resources():
 
     url = "https://github.com/rumplestilzken/gargoyle_updater/releases/download/resources/" + filename
 
-    full_path = here + "/resources/" + filename
+    full_path = here + "/../resources/" + filename
 
     # Download
     if not os.path.exists(full_path):
@@ -104,6 +144,7 @@ def prepare_resources():
 def download_update(json_url, variant, qualifier):
     global dev
     global os_type
+    global region
 
     here = os.path.dirname(os.path.realpath(__file__))
     json_contents = urllib.request.urlopen(json_url)
@@ -112,22 +153,30 @@ def download_update(json_url, variant, qualifier):
 
     variant_code = ota.get_variant_map(qualifier)[variant]
     for enm in DeviceType:
-        if variant_code.split("_")[2] in enm.value:
-            dev = enm
+        count = len(variant_code.split("_"))
+        if count == 4:
+            if variant_code.split("_")[2] in enm.value:
+                dev = enm
+                break
+        else:
+            if variant_code.split("_")[1] in enm.value:
+                dev = enm
+                break
 
     variant_url = "";
     for i in variants:
         if variant_code == i["name"]:
             variant_url = i["url"];
+            break
 
     global outfile
-    outfile = here + "/resources/" + os.path.basename(variant_url)
+    outfile = here + "/../resources/" + os.path.basename(variant_url)
     if not os.path.exists(outfile):
         if os_type == OS.Windows:
             os.system(
-                "cd resources/ & curl-8.2.1_5-win64-mingw\curl-8.2.1_5-win64-mingw\\bin\curl " + variant_url + " --output " + outfile)
+                "cd " + here + "/..resources/ & curl-8.2.1_5-win64-mingw\curl-8.2.1_5-win64-mingw\\bin\curl " + variant_url + " --output " + outfile)
         else:
-            os.system("cd " + here + "/resources/; wget " + variant_url)
+            os.system("cd " + here + "/../resources/; wget " + variant_url)
 
     global progress_bar
     progress_bar.setValue(30)
@@ -139,10 +188,14 @@ def download_update(json_url, variant, qualifier):
         else:
             os.system("xz -kd -T 0 " + outfile)
 
-    if not os.path.exists(outfile.rstrip(".tar.gz")) and ".tar.gz" in outfile:
-        print("Extracting gargoyle GSI '" + outfile + "'")
-        with tarfile.open(outfile, "r") as tf:
-            tf.extractall(path=here + "/resources/")
+    # TODO: is_mksuper or full_flash
+    full_variant = dev.name + "_" + region.name
+    if not os.path.exists(here + "/../resources/" + full_variant + ".zip"):
+        print("Download and Extracting " + full_variant + ".zip")
+        url = ota.get_stock_rom_url_by_full_variant(full_variant)
+        gdown.download(url, here + "/../resources/" + full_variant + ".zip")
+        with zipfile.ZipFile(here + "/../resources/" + full_variant + ".zip", 'r') as zip_ref:
+            zip_ref.extractall(here + "/../resources/" + full_variant)
 
 
 def flash_gsi(partition_name):

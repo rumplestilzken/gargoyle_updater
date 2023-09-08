@@ -44,6 +44,12 @@ class FormWidget(QWidget):
 
         self.layout.addWidget(self.release, 0, 1, Qt.AlignmentFlag.AlignRight)
 
+        self.flash_type = QComboBox(self)
+        self.flash_type.addItem("update")
+        self.flash_type.addItem("flash")
+        self.flash_type.addItem("full_flash")
+        self.layout.addWidget(self.flash_type, 0, 2, Qt.AlignmentFlag.AlignLeft)
+
         self.variant_text_edit = QLabel("Variant")
         self.layout.addWidget(self.variant_text_edit, 1, 0, Qt.AlignmentFlag.AlignLeft)
 
@@ -54,28 +60,21 @@ class FormWidget(QWidget):
         self.gsi_variant.addItem("Titan Pocket")
         self.gsi_variant.addItem("Titan Slim")
         self.gsi_variant.addItem("Jelly 2E")
-        self.gsi_variant.activated.connect(self.updateQualifier)
+        self.gsi_variant.activated.connect(self.update_ui)
         self.layout.addWidget(self.gsi_variant, 1, 1, Qt.AlignmentFlag.AlignRight)
+
+        self.region = QComboBox()
+        self.region.addItem("TEE")
+        self.region.addItem("EEA")
+        self.region.setFixedWidth(80)
+        self.layout.addWidget(self.region, 1, 2, Qt.AlignmentFlag.AlignLeft)
 
         self.qualifier = QComboBox(self)
         self.qualifier.addItem("bvn")
         self.qualifier.addItem("bgN")
-        self.qualifier.addItem("vndkLite")
-        self.layout.addWidget(self.qualifier, 1, 2, Qt.AlignmentFlag.AlignRight)
-
-        self.stock_rom_label = QLabel("Stock Rom Location:")
-        self.layout.addWidget(self.stock_rom_label, 3, 0, Qt.AlignmentFlag.AlignLeft)
-
-        self.stock_rom_edit = QTextEdit()
-        self.stock_rom_edit.setFixedWidth(300)
-        self.stock_rom_edit.setFixedHeight(60)
-        self.stock_rom_edit.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.stock_rom_edit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.layout.addWidget(self.stock_rom_edit, 3, 1, Qt.AlignmentFlag.AlignLeft)
-
-        self.stock_rom_dialog = QPushButton("Open")
-        self.stock_rom_dialog.clicked.connect(self.openFileDialog)
-        self.layout.addWidget(self.stock_rom_dialog, 3, 2, Qt.AlignmentFlag.AlignLeft)
+        self.qualifier.addItem("bgN-vndkLite")
+        self.qualifier.addItem("bvN-vndkLite")
+        self.layout.addWidget(self.qualifier, 1, 3, Qt.AlignmentFlag.AlignLeft)
 
         self.progress_bar = QProgressBar()
         self.progress_bar.setFixedWidth(390)
@@ -92,21 +91,19 @@ class FormWidget(QWidget):
 
     def openFileDialog(self):
         file_dialog = QFileDialog()
-        file_name = file_dialog.getOpenFileName(self, "Select Stock Rom Scatter or Archive", "/home/")
+        file_name = file_dialog.getOpenFileName(self, "Select Stock Rom Archive", "/home/")
         window.form_widget.stock_rom_edit.setText(file_name[0])
 
-    def updateQualifier(self):
+    def update_ui(self):
         window.form_widget.qualifier.clear()
+        window.form_widget.region.clear()
         window.form_widget.qualifier.addItem("bvn")
+        window.form_widget.region.addItem("TEE")
+        window.form_widget.region.addItem("EEA")
         if "Titan" == window.form_widget.gsi_variant.currentText():
-            window.form_widget.qualifier.addItem("vndklite")
-            window.form_widget.stock_rom_label.setVisible(False)
-            window.form_widget.stock_rom_edit.setVisible(False)
-            window.form_widget.stock_rom_dialog.setVisible(False)
-        else:
-            window.form_widget.stock_rom_label.setVisible(True)
-            window.form_widget.stock_rom_edit.setVisible(True)
-            window.form_widget.stock_rom_dialog.setVisible(True)
+            self.qualifier.addItem("bgN-vndkLite")
+            self.qualifier.addItem("bvN-vndkLite")
+            window.form_widget.region.addItem("UFS")
         window.form_widget.qualifier.addItem("bgN")
 
 
@@ -115,11 +112,12 @@ window = Window()
 
 
 def flash_click():
-    url = window.form_widget.url_text_edit.toPlainText()
+    url = window.form_widget.release.currentText()
     actual_url = ota.getOTADictionary()[url]
     variant = window.form_widget.gsi_variant.currentText()
-    qualifier = window.form_widget.release.currentText()
-    flash.process_flash(actual_url, variant, qualifier, window.form_widget.progress_bar)
+    qualifier = window.form_widget.qualifier.currentText()
+    region = window.form_widget.region.currentText()
+    flash.process_flash(actual_url, variant, region, qualifier, window.form_widget.progress_bar)
 
 
 def flash_click_event():
@@ -135,7 +133,6 @@ def flash_click_event():
 def process_finished():
     global x
     while x.is_alive():
-        # window.form_widget.setEnabled(False)
         ""  # Do Nothing
     window.form_widget.progress_bar.setValue(100)
     window.form_widget.setEnabled(True)
@@ -143,7 +140,7 @@ def process_finished():
 
 def main():
     window.form_widget.button1.clicked.connect(lambda: flash_click_event())
-    window.form_widget.updateQualifier()
+    window.form_widget.update_ui()
 
     sys.exit(app.exec())
     return
