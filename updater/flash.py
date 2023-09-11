@@ -82,9 +82,24 @@ def is_mksuper():
 def mksuper():
     global dev
     global region
+    global outfile
 
     if not is_mksuper():
         return
+
+    here = os.path.dirname(os.path.realpath(__file__))
+    print("mksuper process running")
+
+    full_variant = dev.name + "_" + region.name
+    if not os.path.exists(here + "/../resources/super." + full_variant + ".img"):
+        folder_name = os.listdir(here + "/../resources/" + full_variant)[0]
+        os.system("cd " + here + "/../resources/mksuper/; python extract.py -stock " + here + "/../resources/" + full_variant
+                  + "/" + folder_name)
+        os.system("cd " + here + "/../resources/mksuper/; python mksuper.py -dev " + dev.value + " -gsi "
+                  + outfile.replace(".xz", "") + " -out " + here + "/../resources/super." + full_variant +
+                  ".img -no-product")
+
+    outfile = here + "/../resources/super." + full_variant + ".img"
 
 
 def prepare_resources():
@@ -204,16 +219,16 @@ def flash_gsi(partition_name):
     global os_type
     global outfile
 
-    full_path = here + "/resources/" + filename.rstrip(".zip") + "/platform-tools/"
+    full_path = here + "/../resources/" + filename.rstrip(".zip") + "/platform-tools/"
     command = "/adb reboot bootloader"
 
-    if "system" in partition_name:
-        command = "/adb reboot fastboot"
+    # if "system" in partition_name:
+    #     command = "/adb reboot fastboot"
 
     os.system(full_path + command)
 
     progress_bar.setValue(70)
-    command = "/fastboot flash " + partition_name + " " + outfile.replace(".tar.gz", "").replace(".xz", "")
+    command = "/fastboot flash " + partition_name + " " + outfile
     os.system(full_path + command)
 
     command = "/fastboot reboot"
