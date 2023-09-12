@@ -104,7 +104,11 @@ def mksuper():
 
     full_variant = dev.name + "_" + region.name
     if not os.path.exists(here + "/../resources/super." + full_variant + "-" + qualifier.value + ".img"):
-        folder_name = os.listdir(here + "/../resources/" + full_variant)[0]
+        folder_name = ""
+        for folder in os.listdir(here + "/../resources/" + full_variant):
+            if os.path.isdir(here + "/../resources/" + full_variant + "/" + folder):
+                folder_name = folder
+                break
         os.system(
             "cd " + here + "/../resources/mksuper/; python extract.py -stock " + here + "/../resources/" + full_variant
             + "/" + folder_name)
