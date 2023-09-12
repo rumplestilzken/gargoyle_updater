@@ -33,6 +33,14 @@ class DeviceType(Enum):
     Jelly2E = "jelly2e"
 
 
+class Qualifier(Enum):
+    NotSet = ""
+    bvN = "bvN"
+    bgN = "bgN"
+    bvN_vndklite = "bvN-vndklite"
+    bgN_vndklite = "bgN-vndklite"
+
+
 class FlashType(Enum):
     NotSet = ""
     Update = "update"
@@ -46,21 +54,24 @@ progress_bar = None
 filename = ""
 outfile = ""
 dev = DeviceType.NotSet
+qualifier = Qualifier.NotSet
 
 
-def process_flash(json_url, variant, given_region, qualifier, progressbar):
+def process_flash(json_url, variant, given_region, given_qualifier, progressbar):
     global progress_bar
     global dev
     global region
+    global qualifier
 
     region = DeviceReqion[given_region]
+    qualifier = Qualifier[given_qualifier.replace("-", "_")]
     progress_bar = progressbar
     progressbar.setValue(10)
 
     prepare_resources()
     progressbar.setValue(20)
 
-    download_update(json_url, variant, qualifier)
+    download_update(json_url, variant, given_qualifier)
     progressbar.setValue(50)
 
     mksuper()
@@ -83,6 +94,7 @@ def mksuper():
     global dev
     global region
     global outfile
+    global qualifier
 
     if not is_mksuper():
         return
@@ -91,15 +103,16 @@ def mksuper():
     print("mksuper process running")
 
     full_variant = dev.name + "_" + region.name
-    if not os.path.exists(here + "/../resources/super." + full_variant + ".img"):
+    if not os.path.exists(here + "/../resources/super." + full_variant + "-" + qualifier.value + ".img"):
         folder_name = os.listdir(here + "/../resources/" + full_variant)[0]
-        os.system("cd " + here + "/../resources/mksuper/; python extract.py -stock " + here + "/../resources/" + full_variant
-                  + "/" + folder_name)
+        os.system(
+            "cd " + here + "/../resources/mksuper/; python extract.py -stock " + here + "/../resources/" + full_variant
+            + "/" + folder_name)
         os.system("cd " + here + "/../resources/mksuper/; python mksuper.py -dev " + dev.value + " -gsi "
-                  + outfile.replace(".xz", "") + " -out " + here + "/../resources/super." + full_variant +
-                  ".img -no-product")
+                  + outfile.replace(".xz", "") + " -out " + here + "/../resources/super." + full_variant + "-" +
+                  qualifier.value + ".img -no-product")
 
-    outfile = here + "/../resources/super." + full_variant + ".img"
+    outfile = here + "/../resources/super." + full_variant + "-" + qualifier.value + ".img"
 
 
 def prepare_resources():
@@ -203,14 +216,14 @@ def download_update(json_url, variant, qualifier):
         else:
             os.system("xz -kd -T 0 " + outfile)
 
-    # TODO: is_mksuper or full_flash
-    full_variant = dev.name + "_" + region.name
-    if not os.path.exists(here + "/../resources/" + full_variant + ".zip"):
-        print("Download and Extracting " + full_variant + ".zip")
-        url = ota.get_stock_rom_url_by_full_variant(full_variant)
-        gdown.download(url, here + "/../resources/" + full_variant + ".zip")
-        with zipfile.ZipFile(here + "/../resources/" + full_variant + ".zip", 'r') as zip_ref:
-            zip_ref.extractall(here + "/../resources/" + full_variant)
+    if is_mksuper():
+        full_variant = dev.name + "_" + region.name
+        if not os.path.exists(here + "/../resources/" + full_variant + ".zip"):
+            print("Download and Extracting " + full_variant + ".zip")
+            url = ota.get_stock_rom_url_by_full_variant(full_variant)
+            gdown.download(url, here + "/../resources/" + full_variant + ".zip")
+            with zipfile.ZipFile(here + "/../resources/" + full_variant + ".zip", 'r') as zip_ref:
+                zip_ref.extractall(here + "/../resources/" + full_variant)
 
 
 def flash_gsi(partition_name):

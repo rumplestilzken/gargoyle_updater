@@ -44,11 +44,11 @@ class FormWidget(QWidget):
 
         self.layout.addWidget(self.release, 0, 1, Qt.AlignmentFlag.AlignRight)
 
-        self.flash_type = QComboBox(self)
-        self.flash_type.addItem("update")
-        self.flash_type.addItem("flash")
-        self.flash_type.addItem("full_flash")
-        self.layout.addWidget(self.flash_type, 0, 2, Qt.AlignmentFlag.AlignLeft)
+        # self.flash_type = QComboBox(self)
+        # self.flash_type.addItem("update")
+        # self.flash_type.addItem("flash")
+        # self.flash_type.addItem("full_flash")
+        # self.layout.addWidget(self.flash_type, 0, 2, Qt.AlignmentFlag.AlignLeft)
 
         self.variant_text_edit = QLabel("Variant")
         self.layout.addWidget(self.variant_text_edit, 1, 0, Qt.AlignmentFlag.AlignLeft)
@@ -70,7 +70,7 @@ class FormWidget(QWidget):
         self.layout.addWidget(self.region, 1, 2, Qt.AlignmentFlag.AlignLeft)
 
         self.qualifier = QComboBox(self)
-        self.qualifier.addItem("bvn")
+        self.qualifier.addItem("bvN")
         self.qualifier.addItem("bgN")
         self.qualifier.addItem("bgN-vndkLite")
         self.qualifier.addItem("bvN-vndkLite")
@@ -97,7 +97,7 @@ class FormWidget(QWidget):
     def update_ui(self):
         window.form_widget.qualifier.clear()
         window.form_widget.region.clear()
-        window.form_widget.qualifier.addItem("bvn")
+        window.form_widget.qualifier.addItem("bvN")
         window.form_widget.region.addItem("TEE")
         window.form_widget.region.addItem("EEA")
         if "Titan" == window.form_widget.gsi_variant.currentText():
