@@ -35,9 +35,9 @@ def get_stock_rom_url_by_full_variant(full_variant):
         "Titan_UFS": "https://drive.google.com/uc?id=1UtPFygiYztL_aHKw13Pb4aKiLDmLAm1I",
         "Pocket_EEA": "https://drive.google.com/uc?id=1bL0QO-rmMTnsEtEXYm6aetdXd-y8I19g",
         "Pocket_TEE": "https://drive.google.com/uc?id=1HZZ84TOGcj6zQcGn5_o1i0CW5GfI6H4D",
-        "Jelly2E_TEE": "https://drive.google.com/uc=id?1cm7_q7ZTquUdOJa0LOh6RpIRAugqQh_T",
-        "Jelly2E_EAA": "https://drive.google.com/uc=id?kL6uS7cQzv1LAhK6UqKIt83P8RSC2IMv",
-        "Slim_TEE": "https://drive.google.com/uc=id?1LFgHn4LylLju9--CcPDjrHY8-goIisft",
-        "Slim_EEA": "https://drive.google.com/uc=id?Bpfi5Uf4dQf-YgSbmd-0WMRMWILyxgS8"
+        "Jelly2E_TEE": "https://drive.google.com/uc?id=1cm7_q7ZTquUdOJa0LOh6RpIRAugqQh_T",
+        "Jelly2E_EAA": "https://drive.google.com/uc?id?kL6uS7cQzv1LAhK6UqKIt83P8RSC2IMv",
+        "Slim_TEE": "https://drive.google.com/uc?id=1LFgHn4LylLju9--CcPDjrHY8-goIisft",
+        "Slim_EEA": "https://drive.google.com/uc?id=?Bpfi5Uf4dQf-YgSbmd-0WMRMWILyxgS8"
     }
     return dict[full_variant]
