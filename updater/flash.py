@@ -245,7 +245,7 @@ def flash_gsi(partition_name):
     os.system(full_path + command)
 
     progress_bar.setValue(70)
-    command = "/fastboot flash " + partition_name + " " + outfile
+    command = "/fastboot flash " + partition_name + " " + outfile.replace(".xz", "")
     os.system(full_path + command)
 
     command = "/fastboot reboot"
